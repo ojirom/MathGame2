@@ -4,15 +4,18 @@ public class MathGame {
 
     private Player player1;
     private Player player2;
+    private Player player3;
     private Player currentPlayer;
     private Player winner;
     private boolean gameOver;
+    private int incorrect = 0;
     private Scanner scanner;
 
     // create MathGame object
-    public MathGame(Player player1, Player player2, Scanner scanner) {
+    public MathGame(Player player1, Player player2, Player player3, Scanner scanner) {
         this.player1 = player1;
         this.player2 = player2;
+        this.player3 = player3;
         this.scanner = scanner;
         currentPlayer = null; // will get assigned at start of game
         winner = null; // will get assigned when a Player wins
@@ -36,12 +39,17 @@ public class MathGame {
             if (correct) {
                 System.out.println("Correct!");
                 currentPlayer.incrementScore();  // this increments the currentPlayer's score
-                swapPlayers();  // this helper method (shown below) sets currentPlayer to the other Player
+                incorrect = 0;
             } else {
                 System.out.println("INCORRECT!");
-                gameOver = true;
-                determineWinner();
+                incorrect++;
+                if (incorrect == 2) {
+                    swapPlayers();
+                    gameOver = true;
+                    determineWinner();
+                }
             }
+            swapPlayers();  // this helper method (shown below) sets currentPlayer to the other Player
         }
     }
 
@@ -51,6 +59,7 @@ public class MathGame {
         System.out.println("Current Scores:");
         System.out.println(player1.getName() + ": " + player1.getScore());
         System.out.println(player2.getName() + ": " + player2.getScore());
+        System.out.println(player3.getName() + ": " + player3.getScore());
         System.out.println("--------------------------------------");
     }
 
@@ -58,6 +67,8 @@ public class MathGame {
     public void resetGame() {
         player1.reset(); // this method resets the player
         player2.reset();
+        player3.reset();
+        incorrect = 0;
         gameOver = false;
         currentPlayer = null;
         winner = null;
@@ -67,11 +78,13 @@ public class MathGame {
 
     // randomly chooses one of the Player objects to be the currentPlayer
     private void chooseStartingPlayer() {
-        int randNum = (int) (Math.random() * 2) + 1;
+        int randNum = (int) (Math.random() * 3) + 1;
         if (randNum == 1) {
             currentPlayer = player1;
-        } else {
+        } else if (randNum == 2) {
             currentPlayer = player2;
+        } else {
+            currentPlayer = player3;
         }
     }
 
@@ -114,6 +127,8 @@ public class MathGame {
     private void swapPlayers() {
         if (currentPlayer == player1) {
             currentPlayer = player2;
+        } else if (currentPlayer == player2){
+            currentPlayer = player3;
         } else {
             currentPlayer = player1;
         }
@@ -121,10 +136,12 @@ public class MathGame {
 
     // sets the winner when the game ends based on the player that missed the question
     private void determineWinner() {
-        if (currentPlayer == player1) {
-            winner = player2;
-        } else {
-            winner = player1;
+        winner = currentPlayer;
+        swapPlayers();
+        while (currentPlayer != winner) {
+            currentPlayer.resetWinStreak();
+            swapPlayers();
         }
+        winner.incrementWin();
     }
 }
